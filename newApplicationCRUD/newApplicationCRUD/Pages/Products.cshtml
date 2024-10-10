@@ -1,0 +1,123 @@
+﻿@page
+@model newApplicationCRUD.Pages.ProductsModel
+@{
+    ViewData["Title"] = "Products";
+
+}
+
+<h2>Products</h2>
+
+<form id="productForm">
+    <input type="hidden" id="productId" />
+    <div>
+        <label>Name:</label>
+        <input type="text" id="productName" required />
+    </div>
+    <div>
+        <label>Price:</label>
+        <input type="number" id="productPrice" required />
+    </div>
+    <div>
+        <label>Quantity:</label>
+        <input type="number" id="productQuantity" required />
+    </div>
+    <button type="button" id="saveProductBtn">Save</button>
+    <button type="button" id="clearFormBtn">Clear</button>
+</form>
+
+<h3>Product List</h3>
+<table id="productTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Product rows will be populated here -->
+    </tbody>
+</table>
+
+<script>
+    const apiUrl = '/api/products';
+
+    async function fetchProducts() {
+        const response = await fetch(apiUrl);
+        const products = await response.json();
+        const tableBody = document.querySelector('#productTable tbody');
+        tableBody.innerHTML = '';
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.price}</td>
+                <td>${product.quantity}</td>
+                <td>
+                    <button onclick="editProduct(${product.id})">Edit</button>
+                    <button onclick="deleteProduct(${product.id})">Delete</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    document.getElementById('saveProductBtn').onclick = async () => {
+        const id = document.getElementById('productId').value;
+        const name = document.getElementById('productName').value;
+        const price = document.getElementById('productPrice').value;
+        const quantity = document.getElementById('productQuantity').value;
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `${apiUrl}/${id}` : apiUrl;
+
+        const productData = id ?
+            { id, name, price, quantity } :
+            { name, price, quantity };
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        });
+        if (response.ok) {
+            fetchProducts();
+            clearForm();
+        }
+        else{
+            const error = await response.text();
+            console.error('Error:', error);
+        }
+    };
+
+    window.editProduct = (id) => {
+        fetch(`${apiUrl}/${id}`)
+            .then(response => response.json())
+            .then(product => {
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productQuantity').value = product.quantity;
+            });
+    };
+
+    window.deleteProduct = async (id) => {
+        await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        fetchProducts();
+    };
+
+    document.getElementById('clearFormBtn').onclick = clearForm;
+
+    function clearForm() {
+        document.getElementById('productForm').reset();
+        document.getElementById('productId').value = '';
+    }
+
+    // Initial fetch
+    fetchProducts();
+</script>
