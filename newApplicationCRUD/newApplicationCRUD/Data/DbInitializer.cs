@@ -17,8 +17,8 @@ namespace newApplicationCRUD.Data
 
             var products = new Products[]
             {
-                new Products { Name = "Apple", Price = 40, Quantity = 10 },
-                new Products { Name = "Mango", Price = 50, Quantity = 20 },
+                new Products { Name = "HDD", Price = 6000, Quantity = 1 },
+                new Products { Name = "Monitor", Price = 8000, Quantity = 1 },
             };
 
             foreach (var p in products)
